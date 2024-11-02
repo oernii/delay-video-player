@@ -24,6 +24,8 @@ def config(file_path='kamera.conf'):
     settings = {
         'cam1': config.get('Settings', 'cam1', fallback='/dev/video0'),
         'cam2': config.get('Settings', 'cam2', fallback='/dev/video2'),
+        'delay1': config.get('Settings', 'delay1', fallback='2'),
+        'delay2': config.get('Settings', 'delay2', fallback='4'),
         'height': config.get('Settings', 'height', fallback='100%'),
     }
     
@@ -54,8 +56,9 @@ def main():
     subprocess.run(["xdotool", "windowmove", window_id2, "50%", "0"])
     subprocess.run(["xdotool", "windowsize", window_id2, "50%", settings['height']])
 
+    time.sleep(3)
 
-    delay_vlcs()
+    delay_vlcs(int(settings['delay1']), int(settings['delay2']))
 
     try:
         while True:
@@ -93,11 +96,12 @@ def netcat(host, port, message):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def delay_vlcs():
+def delay_vlcs(delay1=4, delay2=4):
     netcat("localhost", 8080, "pause\n")
     netcat("localhost", 8081, "pause\n")
-    time.sleep(4)
+    time.sleep(min(delay1, delay2))
     netcat("localhost", 8080, "pause\n")
+    time.sleep(abs(delay1 - delay2))
     netcat("localhost", 8081, "pause\n")
 
 def kill_vlcs():
