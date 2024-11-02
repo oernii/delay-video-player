@@ -9,19 +9,38 @@ import time
 import os
 import psutil
 import socket
+import configparser
 
+def config(file_path='kamera.conf'):
+    config_path = os.path.expanduser(f'~/.config/{file_path}')
+    config = configparser.RawConfigParser()
+    
+    if os.path.exists(config_path):
+        config.read(config_path)
+        print("Config file " + file_path + " found. Settings:" + str(config))
+    else:
+        print("Config file " + file_path + " NOT found")
+    
+    settings = {
+        'cam1': config.get('Settings', 'cam1', fallback='/dev/video0'),
+        'cam2': config.get('Settings', 'cam2', fallback='/dev/video2'),
+        'height': config.get('Settings', 'height', fallback='100%'),
+    }
+    
+    return settings
 
 def main():
     kill_vlcs()
+    settings = config()
     args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--video-filter=transform{type=\"90\"}", "--rc-host"]
-    process1 = subprocess.Popen(args + ["localhost:8080", "--video-title", "video0", "v4l2:///dev/video0"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    process2 = subprocess.Popen(args + ["localhost:8081", "--video-title", "video2","v4l2:///dev/video2"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process1 = subprocess.Popen(args + ["localhost:8080", "--video-title", "kamera1", "v4l2://" + settings['cam1']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process2 = subprocess.Popen(args + ["localhost:8081", "--video-title", "kamera2", "v4l2://" + settings['cam2']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     time.sleep(5)
 
     while True:
-        window_id1 = check_window("video0")
-        window_id2 = check_window("video2")
+        window_id1 = check_window("kamera1")
+        window_id2 = check_window("kamera2")
         if window_id1 and window_id2:
             print(f"Window '{window_id1}' and '{window_id2}' found ")
             break
@@ -30,10 +49,10 @@ def main():
     print("VLC windows are visible... pid1: " + str(process1.pid) + " , pid2: " + str(process2.pid))
 
     subprocess.run(["xdotool", "windowmove", window_id1, "0", "0"])
-    subprocess.run(["xdotool", "windowsize", window_id1, "50%", "50%"])
+    subprocess.run(["xdotool", "windowsize", window_id1, "50%", settings['height']])
 
     subprocess.run(["xdotool", "windowmove", window_id2, "50%", "0"])
-    subprocess.run(["xdotool", "windowsize", window_id2, "50%", "50%"])
+    subprocess.run(["xdotool", "windowsize", window_id2, "50%", settings['height']])
 
 
     delay_vlcs()
