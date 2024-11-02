@@ -24,6 +24,8 @@ def config(file_path='kamera.conf'):
     settings = {
         'cam1': config.get('Settings', 'cam1', fallback='/dev/video0'),
         'cam2': config.get('Settings', 'cam2', fallback='/dev/video2'),
+        'rotation1': config.get('Settings', 'rotation1', fallback='90'),
+        'rotation2': config.get('Settings', 'rotation2', fallback='90'),
         'delay1': config.get('Settings', 'delay1', fallback='2'),
         'delay2': config.get('Settings', 'delay2', fallback='4'),
         'height': config.get('Settings', 'height', fallback='100%'),
@@ -34,8 +36,10 @@ def config(file_path='kamera.conf'):
 def main():
     kill_vlcs()
     settings = config()
-    args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--video-filter=transform{type=\"90\"}", "--rc-host"]
+    args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--video-filter=transform{type=\"" + settings['rotation1'] + "\"}", "--rc-host"]
     process1 = subprocess.Popen(args + ["localhost:8080", "--video-title", "kamera1", "v4l2://" + settings['cam1']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--video-filter=transform{type=\"" + settings['rotation2'] + "\"}", "--rc-host"]
     process2 = subprocess.Popen(args + ["localhost:8081", "--video-title", "kamera2", "v4l2://" + settings['cam2']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     time.sleep(5)
@@ -58,7 +62,7 @@ def main():
 
     time.sleep(3)
 
-    delay_vlcs(int(settings['delay1']), int(settings['delay2']))
+    delay_vlcs(float(settings['delay1']), float(settings['delay2']))
 
     try:
         while True:
