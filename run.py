@@ -36,10 +36,10 @@ def config(file_path='kamera.conf'):
 def main():
     kill_vlcs()
     settings = config()
-    args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--video-filter=transform{type=\"" + settings['rotation1'] + "\"}", "--rc-host"]
+    args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--rc-host"]
     process1 = subprocess.Popen(args + ["localhost:8080", "--video-title", "kamera1", "v4l2://" + settings['cam1']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--video-filter=transform{type=\"" + settings['rotation2'] + "\"}", "--rc-host"]
+    args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--rc-host"]
     process2 = subprocess.Popen(args + ["localhost:8081", "--video-title", "kamera2", "v4l2://" + settings['cam2']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     time.sleep(5)
@@ -54,11 +54,14 @@ def main():
         time.sleep(1)
     print("VLC windows are visible... pid1: " + str(process1.pid) + " , pid2: " + str(process2.pid))
 
+    subprocess.run(["xdotool", "windowsize", window_id1, "100%", "50%"])
     subprocess.run(["xdotool", "windowmove", window_id1, "0", "0"])
-    subprocess.run(["xdotool", "windowsize", window_id1, "50%", settings['height']])
+    #subprocess.run(["xdotool", "windowsize", window_id1, "50%", settings['height']])
 
-    subprocess.run(["xdotool", "windowmove", window_id2, "50%", "0"])
-    subprocess.run(["xdotool", "windowsize", window_id2, "50%", settings['height']])
+    time.sleep(1)
+    subprocess.run(["xdotool", "windowsize", window_id2, "100%", "50%"])
+    subprocess.run(["xdotool", "windowmove", window_id2, "0", "850"])
+    #subprocess.run(["xdotool", "windowsize", window_id2, "50%", settings['height']])
 
     time.sleep(3)
 

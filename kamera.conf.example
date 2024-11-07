@@ -3,7 +3,7 @@ cam1 = /dev/v4l/by-id/usb-Polycom_Inc._EagleEye_Mini_Camera_01.1937.1161-video-i
 cam2 = /dev/v4l/by-id/usb-Alcor_Micro__Corp._USB_2.0_PC_Camera-video-index0
 height = 100%
 delay1 = 1
-delay2 = 2.5
-rotation1 = 270
-rotation2 = 270
+delay2 = 1
+rotation1 = 0
+rotation2 = 0
 
