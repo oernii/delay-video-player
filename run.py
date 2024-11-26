@@ -37,6 +37,9 @@ def main():
     kill_vlcs()
     settings = config()
     args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--rc-host"]
+    # vlc v4l2:///dev/video2 --no-audio --v4l2-width 1920 --v4l2-height 1080 --v4l2-chroma MJPG --v4l2-hflip 1 --v4l2-vflip 1
+    # mpv --demuxer-lavf-format=video4linux2 --demuxer-lavf-o-set=input_format=mjpeg /dev/video2
+    args2 = ["--no-audio", "--v4l2-width 1920", "--v4l2-height 1080", "--v4l2-chroma MJPG",", ""--v4l2-hflip 1", "--v4l2-vflip 1"]
     process1 = subprocess.Popen(args + ["localhost:8080", "--video-title", "kamera1", "v4l2://" + settings['cam1']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     args = ["cvlc", "--no-video-title-show", "--extraintf", "rc", "--rc-host"]
