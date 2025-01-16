@@ -10,7 +10,7 @@ class VideoCaptureWidget:
     def __init__(self, video_source, label):
         self.video_source = video_source
         self.label = label
-        self.cap = cv2.VideoCapture(int(video_source[-1]))  # Extract the device number
+        self.cap = cv2.VideoCapture(video_source)
         self.running = False
 
     def start(self):
@@ -39,7 +39,7 @@ class VideoCaptureWidget:
 def select_device(device_variable, video_widget):
     device = device_variable.get()
     video_widget.stop()
-    video_widget.cap = cv2.VideoCapture(int(device[-1]))  # Extract the device number
+    video_widget.cap = cv2.VideoCapture(device)  # Support both video files and device IDs
     video_widget.start()
 
 def save_config_and_run(device1, device2, num1, num2):
@@ -72,7 +72,7 @@ def load_config():
     if os.path.exists("config.txt"):
         with open("config.txt", "r") as file:
             for line in file:
-                key, value = line.strip().split('=')
+                key, value = line.strip().split('=', 1)
                 config[key] = value
     return config
 
@@ -82,16 +82,16 @@ def create_gui():
 
     config = load_config()
 
-    # Device dropdowns
+    # Device dropdowns or file paths
     device1_var = tk.StringVar(value=config["device1"])
     device2_var = tk.StringVar(value=config["device2"])
-    devices = [f"/dev/video{i}" for i in range(5)]  # Assuming up to /dev/video4
+    devices = [f"/dev/video{i}" for i in range(5)] + ["Select File..."]
 
-    ttk.Label(root, text="Select Device 1:").grid(row=0, column=0, padx=5, pady=5)
+    ttk.Label(root, text="Select Device 1 or File:").grid(row=0, column=0, padx=5, pady=5)
     device1_menu = ttk.OptionMenu(root, device1_var, *devices)
     device1_menu.grid(row=0, column=1, padx=5, pady=5)
 
-    ttk.Label(root, text="Select Device 2:").grid(row=1, column=0, padx=5, pady=5)
+    ttk.Label(root, text="Select Device 2 or File:").grid(row=1, column=0, padx=5, pady=5)
     device2_menu = ttk.OptionMenu(root, device2_var, *devices)
     device2_menu.grid(row=1, column=1, padx=5, pady=5)
 
