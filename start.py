@@ -40,6 +40,14 @@ def select_device(device_variable, video_widget):
     video_widget.cap = cv2.VideoCapture(device)
     video_widget.start()
 
+def save_config(device1, device2, num1, num2):
+    with open("config.txt", "w") as file:
+        file.write(f"device1={device1}\n")
+        file.write(f"device2={device2}\n")
+        file.write(f"number1={num1}\n")
+        file.write(f"number2={num2}\n")
+    print("Configuration saved.")
+
 def create_gui():
     root = tk.Tk()
     root.title("Video Device Selector")
@@ -64,6 +72,15 @@ def create_gui():
     label2 = tk.Label(root)
     label2.grid(row=2, column=1, padx=5, pady=5)
 
+    # Number inputs
+    ttk.Label(root, text="Enter Number 1:").grid(row=3, column=0, padx=5, pady=5)
+    number1_entry = ttk.Entry(root)
+    number1_entry.grid(row=3, column=1, padx=5, pady=5)
+
+    ttk.Label(root, text="Enter Number 2:").grid(row=4, column=0, padx=5, pady=5)
+    number2_entry = ttk.Entry(root)
+    number2_entry.grid(row=4, column=1, padx=5, pady=5)
+
     # Video widgets
     video1 = VideoCaptureWidget(device1_var.get(), label1)
     video2 = VideoCaptureWidget(device2_var.get(), label2)
@@ -75,6 +92,14 @@ def create_gui():
     # Update video sources on selection change
     device1_var.trace("w", lambda *args: select_device(device1_var, video1))
     device2_var.trace("w", lambda *args: select_device(device2_var, video2))
+
+    # Buttons
+    ttk.Button(root, text="Save/Run", command=lambda: save_config(
+        device1_var.get(), device2_var.get(), number1_entry.get(), number2_entry.get())
+    ).grid(row=5, column=0, padx=5, pady=5)
+
+    ttk.Button(root, text="Exit", command=lambda: (video1.stop(), video2.stop(), root.destroy())
+    ).grid(row=5, column=1, padx=5, pady=5)
 
     root.protocol("WM_DELETE_WINDOW", lambda: (video1.stop(), video2.stop(), root.destroy()))
     root.mainloop()
