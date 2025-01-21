@@ -5,6 +5,8 @@ from threading import Thread
 import time
 import os
 import importlib
+import configparser
+import pprint
 
 class VideoCaptureWidget:
     def __init__(self, video_source, label):
@@ -42,58 +44,79 @@ def select_device(device_variable, video_widget):
     video_widget.cap = cv2.VideoCapture(device)  # Support both video files and device IDs
     video_widget.start()
 
-def save_config_and_run(device1, device2, num1, num2):
-    with open("config.txt", "w") as file:
-        file.write(f"device1={device1}\n")
-        file.write(f"device2={device2}\n")
-        file.write(f"number1={num1}\n")
-        file.write(f"number2={num2}\n")
-    print("Configuration saved.")
-    
-    # Run another Python script within the same process
-    run_another_script()
-
 def run_another_script():
     try:
         import another_script  # Import the script
         importlib.reload(another_script)  # Reload in case it was already imported
     except ModuleNotFoundError:
-        print("another_script.py not found.")
+        print("run.py not found.")
     except Exception as e:
-        print(f"Error running another_script.py: {e}")
+        print(f"Error running run.py: {e}")
+
+def save_config_and_run(cam1, cam2, num1, num2):
+    config = configparser.ConfigParser()
+
+    config['Settings'] = {
+        'cam1': cam1,
+        'cam2': cam2
+    }
+
+    config_dir = os.path.join(os.path.expanduser('~'), '.config')
+    config_file_path = os.path.join(config_dir, 'kamera.conf')
+
+    if os.path.exists(config_file_path):
+        config.read(config_file_path)
+
+    with open(config_file_path, 'w') as configfile:
+        config.write(configfile)
+
+    print("Configuration saved.")
+    run_another_script()
 
 def load_config():
-    config = {
-        "device1": "/dev/video0",
-        "device2": "/dev/video1",
-        "number1": "0",
-        "number2": "0"
+    config = configparser.ConfigParser(interpolation=None)
+    config['Settings'] = {
+        "cam1": "/dev/video0",
+        "cam2": "/dev/video2",
+        "delay1": "10",
+        "delay2": "10"
     }
-    if os.path.exists("config.txt"):
-        with open("config.txt", "r") as file:
-            for line in file:
-                key, value = line.strip().split('=', 1)
-                config[key] = value
+
+    config_dir = os.path.join(os.path.expanduser('~'), '.config')
+    config_file_path = os.path.join(config_dir, 'kamera.conf')
+
+    if os.path.exists(config_file_path):
+        config.read(config_file_path)
     return config
 
 def create_gui():
+    config = load_config()
+    # print(config)
+    # pprint.pprint(config)
+    # pprint.pprint(dict(config))
+    # for section in config.sections():
+    #     print(f"[{section}]")
+    #     for key, value in config.items(section):
+    #         print(f"{key} = {value}")
+    #     print()
+    # exit(1)
+
     root = tk.Tk()
     root.title("Video Device Selector")
 
-    config = load_config()
-
     # Device dropdowns or file paths
-    device1_var = tk.StringVar(value=config["device1"])
-    device2_var = tk.StringVar(value=config["device2"])
-    devices = [f"/dev/video{i}" for i in range(5)] + ["Select File..."]
+    cam1_var = tk.StringVar(value=config.get('Settings', 'cam1'))
+    cam2_var = tk.StringVar(value=config.get('Settings', 'cam2'))
+    devices = [f"/dev/video{i}" for i in [0,0,1,2,3,4,5,6,7]]
+    #devices = [f"/dev/video{i}" for i in range(0,5) if os.path.exists(f"/dev/video{i}")]
 
     ttk.Label(root, text="Select Device 1 or File:").grid(row=0, column=0, padx=5, pady=5)
-    device1_menu = ttk.OptionMenu(root, device1_var, *devices)
-    device1_menu.grid(row=0, column=1, padx=5, pady=5)
+    cam1_menu = ttk.OptionMenu(root, cam1_var, *devices)
+    cam1_menu.grid(row=0, column=1, padx=5, pady=5)
 
     ttk.Label(root, text="Select Device 2 or File:").grid(row=1, column=0, padx=5, pady=5)
-    device2_menu = ttk.OptionMenu(root, device2_var, *devices)
-    device2_menu.grid(row=1, column=1, padx=5, pady=5)
+    cam2_menu = ttk.OptionMenu(root, cam2_var, *devices)
+    cam2_menu.grid(row=1, column=1, padx=5, pady=5)
 
     # Video preview labels
     label1 = tk.Label(root)
@@ -103,31 +126,31 @@ def create_gui():
     label2.grid(row=2, column=1, padx=5, pady=5)
 
     # Number inputs
-    ttk.Label(root, text="Enter Number 1:").grid(row=3, column=0, padx=5, pady=5)
-    number1_entry = ttk.Entry(root)
-    number1_entry.insert(0, config["number1"])
-    number1_entry.grid(row=3, column=1, padx=5, pady=5)
+    ttk.Label(root, text="Enter DELAY 1:").grid(row=3, column=0, padx=5, pady=5)
+    delay1_entry = ttk.Entry(root)
+    delay1_entry.insert(0, config.get('Settings', 'delay1'))
+    delay1_entry.grid(row=3, column=1, padx=5, pady=5)
 
-    ttk.Label(root, text="Enter Number 2:").grid(row=4, column=0, padx=5, pady=5)
-    number2_entry = ttk.Entry(root)
-    number2_entry.insert(0, config["number2"])
-    number2_entry.grid(row=4, column=1, padx=5, pady=5)
+    ttk.Label(root, text="Enter DELAY 2:").grid(row=4, column=0, padx=5, pady=5)
+    delay2_entry = ttk.Entry(root)
+    delay2_entry.insert(0, config.get('Settings', 'delay2'))
+    delay2_entry.grid(row=4, column=1, padx=5, pady=5)
 
     # Video widgets
-    video1 = VideoCaptureWidget(device1_var.get(), label1)
-    video2 = VideoCaptureWidget(device2_var.get(), label2)
+    video1 = VideoCaptureWidget(cam1_var.get(), label1)
+    video2 = VideoCaptureWidget(cam2_var.get(), label2)
 
     # Start videos
     video1.start()
     video2.start()
 
     # Update video sources on selection change
-    device1_var.trace("w", lambda *args: select_device(device1_var, video1))
-    device2_var.trace("w", lambda *args: select_device(device2_var, video2))
+    cam1_var.trace("w", lambda *args: select_device(cam1_var, video1))
+    cam2_var.trace("w", lambda *args: select_device(cam2_var, video2))
 
     # Buttons
     ttk.Button(root, text="Save/Run", command=lambda: save_config_and_run(
-        device1_var.get(), device2_var.get(), number1_entry.get(), number2_entry.get())
+        cam1_var.get(), cam2_var.get(), delay1_entry.get(), delay2_entry.get())
     ).grid(row=5, column=0, padx=5, pady=5)
 
     ttk.Button(root, text="Exit", command=lambda: (video1.stop(), video2.stop(), root.destroy())
