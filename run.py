@@ -62,7 +62,7 @@ def main():
     #subprocess.run(["xdotool", "windowsize", window_id1, "50%", settings['height']])
 
     time.sleep(1)
-    subprocess.run(["xdotool", "windowsize", window_id2, "1050", "840"])
+    subprocess.run(["xdotool", "windowsize", window_id2, "100%", "50%"])
     subprocess.run(["xdotool", "windowmove", window_id2, "0", "840"])
     #subprocess.run(["xdotool", "windowsize", window_id2, "50%", settings['height']])
 
